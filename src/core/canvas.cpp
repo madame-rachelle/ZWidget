@@ -88,7 +88,8 @@ public:
 		texture->Data.resize(destwidth * h);
 		uint32_t* dest = (uint32_t*)texture->Data.data();
 
-		std::unique_ptr<uint8_t[]> grayscalebuffer(new uint8_t[w * h]);
+		std::unique_ptr<uint8_t[]> grayscalebuffer(new uint8_t[w
+			* h]);
 		uint8_t* grayscale = grayscalebuffer.get();
 
 		SFT_Image img = {};
@@ -109,10 +110,9 @@ public:
 				uint32_t blue = sline[x];
 				uint32_t alpha = (red | green | blue) ? 255 : 0;
 
-				uint32_t maxval = std::max(std::max(red, green), blue);
-				red = std::max(red, maxval / 5);
-				green = std::max(green, maxval / 5);
-				blue = std::max(blue, maxval / 5);
+				red = (red + green) / 2;
+				green = (red + green + blue) / 3;
+				blue = (green + blue) / 2;
 
 				dline[x / 3] = (alpha << 24) | (red << 16) | (green << 8) | blue;
 			}
@@ -123,10 +123,9 @@ public:
 				uint32_t blue = 0;
 				uint32_t alpha = (red | green | blue) ? 255 : 0;
 
-				uint32_t maxval = std::max(std::max(red, green), blue);
-				red = std::max(red, maxval / 5);
-				green = std::max(green, maxval / 5);
-				blue = std::max(blue, maxval / 5);
+				red = (red + green) / 2;
+				green = (red + green + blue) / 3;
+				blue = (green + blue) / 2;
 
 				dline[(w - 1) / 3] = (alpha << 24) | (red << 16) | (green << 8) | blue;
 			}
@@ -137,10 +136,9 @@ public:
 				uint32_t blue = 0;
 				uint32_t alpha = (red | green | blue) ? 255 : 0;
 
-				uint32_t maxval = std::max(std::max(red, green), blue);
-				red = std::max(red, maxval / 5);
-				green = std::max(green, maxval / 5);
-				blue = std::max(blue, maxval / 5);
+				red = (red + green) / 2;
+				green = (red + green + blue) / 3;
+				blue = (green + blue) / 2;
 
 				dline[(w - 1) / 3] = (alpha << 24) | (red << 16) | (green << 8) | blue;
 			}

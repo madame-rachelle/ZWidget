@@ -108,14 +108,14 @@ void Widget::SetWindowTitle(const std::string& text)
 
 Size Widget::GetSize() const
 {
-	return Geometry.size();
+	return ContentGeometry.size();
 }
 
 Rect Widget::GetFrameGeometry() const
 {
 	if (Type == WidgetType::Child)
 	{
-		return Geometry;
+		return FrameGeometry;
 	}
 	else
 	{
@@ -123,11 +123,28 @@ Rect Widget::GetFrameGeometry() const
 	}
 }
 
+void Widget::SetNoncontentSizes(double left, double top, double right, double bottom)
+{
+	Noncontent.Left = left;
+	Noncontent.Top = top;
+	Noncontent.Right = right;
+	Noncontent.Bottom = bottom;
+}
+
 void Widget::SetFrameGeometry(const Rect& geometry)
 {
 	if (Type == WidgetType::Child)
 	{
-		Geometry = geometry;
+		FrameGeometry = geometry;
+		double left = FrameGeometry.left() + Noncontent.Left;
+		double top = FrameGeometry.top() + Noncontent.Top;
+		double right = FrameGeometry.right() - Noncontent.Right;
+		double bottom = FrameGeometry.bottom() - Noncontent.Bottom;
+		left = std::min(left, FrameGeometry.right());
+		top = std::min(top, FrameGeometry.right());
+		right = std::max(right, FrameGeometry.left());
+		bottom = std::max(bottom, FrameGeometry.top());
+		ContentGeometry = Rect::ltrb(left, top, right, bottom);
 		OnGeometryChanged();
 	}
 	else
@@ -218,8 +235,14 @@ void Widget::Repaint()
 void Widget::Paint(Canvas* canvas)
 {
 	Point oldOrigin = canvas->getOrigin();
-	canvas->pushClip(Geometry);
-	canvas->setOrigin(oldOrigin + Geometry.topLeft());
+	canvas->pushClip(FrameGeometry);
+	canvas->setOrigin(oldOrigin + FrameGeometry.topLeft());
+	OnPaintFrame(canvas);
+	canvas->setOrigin(oldOrigin);
+	canvas->popClip();
+
+	canvas->pushClip(ContentGeometry);
+	canvas->setOrigin(oldOrigin + ContentGeometry.topLeft());
 	OnPaint(canvas);
 	for (Widget* w = FirstChild(); w != nullptr; w = w->NextSibling())
 	{
@@ -334,9 +357,9 @@ Widget* Widget::ChildAt(const Point& pos)
 {
 	for (Widget* cur = LastChild(); cur != nullptr; cur = cur->PrevSibling())
 	{
-		if (cur->Geometry.contains(pos))
+		if (cur->FrameGeometry.contains(pos))
 		{
-			Widget* cur2 = cur->ChildAt(pos - cur->Geometry.topLeft());
+			Widget* cur2 = cur->ChildAt(pos - cur->FrameGeometry.topLeft());
 			return cur2 ? cur2 : cur;
 		}
 	}
@@ -350,7 +373,7 @@ Point Widget::MapFrom(const Widget* parent, const Point& pos) const
 	{
 		if (cur == parent)
 			return p;
-		p -= cur->Geometry.topLeft();
+		p -= cur->ContentGeometry.topLeft();
 	}
 	throw std::runtime_error("MapFrom: not a parent of widget");
 }
@@ -364,7 +387,7 @@ Point Widget::MapFromGlobal(const Point& pos) const
 		{
 			return p - cur->GetFrameGeometry().topLeft();
 		}
-		p -= cur->Geometry.topLeft();
+		p -= cur->ContentGeometry.topLeft();
 	}
 	throw std::runtime_error("MapFromGlobal: no window widget found");
 }
@@ -376,7 +399,7 @@ Point Widget::MapTo(const Widget* parent, const Point& pos) const
 	{
 		if (cur == parent)
 			return p;
-		p += cur->Geometry.topLeft();
+		p += cur->ContentGeometry.topLeft();
 	}
 	throw std::runtime_error("MapTo: not a parent of widget");
 }
@@ -390,7 +413,7 @@ Point Widget::MapToGlobal(const Point& pos) const
 		{
 			return cur->GetFrameGeometry().topLeft() + p;
 		}
-		p += cur->Geometry.topLeft();
+		p += cur->ContentGeometry.topLeft();
 	}
 	throw std::runtime_error("MapFromGlobal: no window widget found");
 }
@@ -508,7 +531,8 @@ void Widget::OnWindowKeyUp(EInputKey key)
 void Widget::OnWindowGeometryChanged()
 {
 	Size size = DispWindow->GetClientSize();
-	Geometry = Rect::xywh(0.0, 0.0, size.width, size.height);
+	FrameGeometry = Rect::xywh(0.0, 0.0, size.width, size.height);
+	ContentGeometry = FrameGeometry;
 	OnGeometryChanged();
 }
 

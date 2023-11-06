@@ -10,6 +10,8 @@
 
 TextEdit::TextEdit(Widget* parent) : Widget(parent)
 {
+	SetNoncontentSizes(8.0, 8.0, 8.0, 8.0);
+
 	timer = new Timer(this);
 	timer->FuncExpired = [=]() { OnTimerExpired(); };
 
@@ -584,9 +586,9 @@ void TextEdit::OnVerticalScroll()
 void TextEdit::UpdateVerticalScroll()
 {
 	Rect rect(
-		GetWidth() - vert_scrollbar->GetWidth(),
+		GetWidth() - 16.0/*vert_scrollbar->GetWidth()*/,
 		0.0,
-		GetWidth(),
+		16.0/*vert_scrollbar->GetWidth()*/,
 		GetHeight());
 
 	vert_scrollbar->SetFrameGeometry(rect);
@@ -1000,18 +1002,20 @@ void TextEdit::LayoutLines(Canvas* canvas)
 	UpdateVerticalScroll();
 }
 
-void TextEdit::OnPaint(Canvas* canvas)
+void TextEdit::OnPaintFrame(Canvas* canvas)
 {
-	// To do: draw frame elsewhere, maybe in a OnPaintFrame function?
-	double w = GetWidth();
-	double h = GetHeight();
+	double w = GetFrameGeometry().width;
+	double h = GetFrameGeometry().height;
 	Colorf bordercolor(200 / 255.0f, 200 / 255.0f, 200 / 255.0f);
 	canvas->fillRect(Rect::xywh(0.0, 0.0, w, h), Colorf(1.0f, 1.0f, 1.0f, 1.0f));
 	canvas->fillRect(Rect::xywh(0.0, 0.0, w, 1.0), bordercolor);
 	canvas->fillRect(Rect::xywh(0.0, h - 1.0, w, 1.0), bordercolor);
 	canvas->fillRect(Rect::xywh(0.0, 0.0, 1.0, h - 0.0), bordercolor);
 	canvas->fillRect(Rect::xywh(w - 1.0, 0.0, 1.0, h - 0.0), bordercolor);
+}
 
+void TextEdit::OnPaint(Canvas* canvas)
+{
 	LayoutLines(canvas);
 	for (size_t i = vert_scrollbar->GetPosition(); i < lines.size(); i++)
 		lines[i].layout.DrawLayout(canvas);

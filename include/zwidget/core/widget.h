@@ -36,6 +36,9 @@ public:
 	double GetWidth() const { return GetSize().width; }
 	double GetHeight() const { return GetSize().height; }
 
+	// Widget noncontent area
+	void SetNoncontentSizes(double left, double top, double right, double bottom);
+
 	// Widget frame box
 	Rect GetFrameGeometry() const;
 	void SetFrameGeometry(const Rect& geometry);
@@ -96,6 +99,7 @@ public:
 	Point MapToParent(const Point& pos) const { return MapTo(Parent(), pos); }
 
 protected:
+	virtual void OnPaintFrame(Canvas* canvas) { }
 	virtual void OnPaint(Canvas* canvas) { }
 	virtual void OnMouseMove(const Point& pos) { }
 	virtual void OnMouseDown(const Point& pos, int key) { }
@@ -145,7 +149,16 @@ private:
 
 	Timer* FirstTimerObj = nullptr;
 
-	Rect Geometry = Rect::xywh(-1.0, -1.0, 0.0, 0.0);
+	Rect FrameGeometry = Rect::xywh(0.0, 0.0, 0.0, 0.0);
+	Rect ContentGeometry = Rect::xywh(0.0, 0.0, 0.0, 0.0);
+
+	struct
+	{
+		double Left = 0.0;
+		double Top = 0.0;
+		double Right = 0.0;
+		double Bottom = 0.0;
+	} Noncontent;
 
 	std::string WindowTitle;
 	std::unique_ptr<DisplayWindow> DispWindow;

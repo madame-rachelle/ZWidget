@@ -5,6 +5,8 @@
 
 LineEdit::LineEdit(Widget* parent) : Widget(parent)
 {
+	SetNoncontentSizes(5.0, 3.0, 5.0, 3.0);
+
 	timer = new Timer(this);
 	timer->FuncExpired = [=]() { OnTimerExpired(); };
 
@@ -1060,18 +1062,20 @@ std::string LineEdit::GetVisibleTextAfterSelection()
 	}
 }
 
-void LineEdit::OnPaint(Canvas* canvas)
+void LineEdit::OnPaintFrame(Canvas* canvas)
 {
-	// To do: draw frame elsewhere, maybe in a OnPaintFrame function?
-	double w = GetWidth();
-	double h = GetHeight();
+	double w = GetFrameGeometry().width;
+	double h = GetFrameGeometry().height;
 	Colorf bordercolor(200 / 255.0f, 200 / 255.0f, 200 / 255.0f);
 	canvas->fillRect(Rect::xywh(0.0, 0.0, w, h), Colorf(1.0f, 1.0f, 1.0f, 1.0f));
 	canvas->fillRect(Rect::xywh(0.0, 0.0, w, 1.0), bordercolor);
 	canvas->fillRect(Rect::xywh(0.0, h - 1.0, w, 1.0), bordercolor);
 	canvas->fillRect(Rect::xywh(0.0, 0.0, 1.0, h - 0.0), bordercolor);
 	canvas->fillRect(Rect::xywh(w - 1.0, 0.0, 1.0, h - 0.0), bordercolor);
+}
 
+void LineEdit::OnPaint(Canvas* canvas)
+{
 	std::string txt_before = GetVisibleTextBeforeSelection();
 	std::string txt_selected = GetVisibleSelectedText();
 	std::string txt_after = GetVisibleTextAfterSelection();
