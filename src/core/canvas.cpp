@@ -248,6 +248,7 @@ public:
 
 BitmapCanvas::BitmapCanvas(DisplayWindow* window) : window(window)
 {
+	uiscale = window->GetDpiScale();
 	uint32_t white = 0xffffffff;
 	whiteTexture = createTexture(1, 1, &white);
 	font = std::make_unique<CanvasFont>("Segoe UI", 13.0*uiscale);
@@ -404,8 +405,8 @@ void BitmapCanvas::line(const Point& p0, const Point& p1, const Colorf& color)
 
 void BitmapCanvas::drawText(const Point& pos, const Colorf& color, const std::string& text)
 {
-	double x = origin.x + std::round(pos.x * uiscale);
-	double y = origin.y + std::round(pos.y * uiscale);
+	double x = std::round((origin.x + pos.x) * uiscale);
+	double y = std::round((origin.y + pos.y) * uiscale);
 
 	UTF8Reader reader(text.data(), text.size());
 	while (!reader.is_end())
@@ -503,22 +504,22 @@ void BitmapCanvas::drawLineUnclipped(const Point& p0, const Point& p1, const Col
 
 int BitmapCanvas::getClipMinX() const
 {
-	return clipStack.empty() ? 0 : (int)std::max(clipStack.back().x, 0.0);
+	return clipStack.empty() ? 0 : (int)std::max(clipStack.back().x * uiscale, 0.0);
 }
 
 int BitmapCanvas::getClipMinY() const
 {
-	return clipStack.empty() ? 0 : (int)std::max(clipStack.back().y, 0.0);
+	return clipStack.empty() ? 0 : (int)std::max(clipStack.back().y * uiscale, 0.0);
 }
 
 int BitmapCanvas::getClipMaxX() const
 {
-	return clipStack.empty() ? width : (int)std::min(clipStack.back().x + clipStack.back().width, (double)width);
+	return clipStack.empty() ? width : (int)std::min((clipStack.back().x + clipStack.back().width) * uiscale, (double)width);
 }
 
 int BitmapCanvas::getClipMaxY() const
 {
-	return clipStack.empty() ? height : (int)std::min(clipStack.back().y + clipStack.back().height, (double)height);
+	return clipStack.empty() ? height : (int)std::min((clipStack.back().y + clipStack.back().height) * uiscale, (double)height);
 }
 
 void BitmapCanvas::drawTile(CanvasTexture* texture, float left, float top, float width, float height, float u, float v, float uvwidth, float uvheight, Colorf color)
@@ -595,7 +596,7 @@ void BitmapCanvas::drawTile(CanvasTexture* texture, float left, float top, float
 	}
 }
 
-void BitmapCanvas::drawGlyph(CanvasTexture* texture, float x, float y, float width, float height, float u, float v, float uvwidth, float uvheight, Colorf color)
+void BitmapCanvas::drawGlyph(CanvasTexture* texture, float left, float top, float width, float height, float u, float v, float uvwidth, float uvheight, Colorf color)
 {
 	if (width <= 0.0f || height <= 0.0f)
 		return;
@@ -608,10 +609,10 @@ void BitmapCanvas::drawGlyph(CanvasTexture* texture, float x, float y, float wid
 	int dheight = this->height;
 	uint32_t* dest = this->pixels.data();
 
-	int x0 = (int)x;
-	int x1 = (int)(x + width);
-	int y0 = (int)y;
-	int y1 = (int)(y + height);
+	int x0 = (int)left;
+	int x1 = (int)(left + width);
+	int y0 = (int)top;
+	int y1 = (int)(top + height);
 
 	x0 = std::max(x0, getClipMinX());
 	y0 = std::max(y0, getClipMinY());
@@ -630,13 +631,13 @@ void BitmapCanvas::drawGlyph(CanvasTexture* texture, float x, float y, float wid
 
 	for (int y = y0; y < y1; y++)
 	{
-		float vpix = v + vscale * (y + 0.5f - y0);
+		float vpix = v + vscale * (y + 0.5f - top);
 		const uint32_t* sline = src + ((int)vpix) * swidth;
 
 		uint32_t* dline = dest + y * dwidth;
 		for (int x = x0; x < x1; x++)
 		{
-			float upix = u + uscale * (x + 0.5f - x0);
+			float upix = u + uscale * (x + 0.5f - left);
 			uint32_t spixel = sline[(int)upix];
 			uint32_t sred = (spixel >> 16) & 0xff;
 			uint32_t sgreen = (spixel >> 8) & 0xff;
@@ -663,6 +664,8 @@ void BitmapCanvas::drawGlyph(CanvasTexture* texture, float x, float y, float wid
 
 void BitmapCanvas::begin(const Colorf& color)
 {
+	uiscale = window->GetDpiScale();
+
 	uint32_t r = (int32_t)clamp(color.r * 255.0f, 0.0f, 255.0f);
 	uint32_t g = (int32_t)clamp(color.g * 255.0f, 0.0f, 255.0f);
 	uint32_t b = (int32_t)clamp(color.b * 255.0f, 0.0f, 255.0f);

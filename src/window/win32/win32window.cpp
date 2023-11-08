@@ -100,19 +100,19 @@ void Win32Window::SetWindowTitle(const std::string& text)
 void Win32Window::SetBorderColor(uint32_t bgra8)
 {
 	bgra8 = bgra8 & 0x00ffffff;
-	DwmSetWindowAttribute(WindowHandle, DWMWA_BORDER_COLOR, &bgra8, sizeof(uint32_t));
+	DwmSetWindowAttribute(WindowHandle, 34/*DWMWA_BORDER_COLOR*/, &bgra8, sizeof(uint32_t));
 }
 
 void Win32Window::SetCaptionColor(uint32_t bgra8)
 {
 	bgra8 = bgra8 & 0x00ffffff;
-	DwmSetWindowAttribute(WindowHandle, DWMWA_CAPTION_COLOR, &bgra8, sizeof(uint32_t));
+	DwmSetWindowAttribute(WindowHandle, 35/*DWMWA_CAPTION_COLOR*/, &bgra8, sizeof(uint32_t));
 }
 
 void Win32Window::SetCaptionTextColor(uint32_t bgra8)
 {
 	bgra8 = bgra8 & 0x00ffffff;
-	DwmSetWindowAttribute(WindowHandle, DWMWA_TEXT_COLOR, &bgra8, sizeof(uint32_t));
+	DwmSetWindowAttribute(WindowHandle, 36/*DWMWA_TEXT_COLOR*/, &bgra8, sizeof(uint32_t));
 }
 
 void Win32Window::SetWindowFrame(const Rect& box)

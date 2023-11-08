@@ -197,6 +197,8 @@ int APIENTRY WinMain(HINSTANCE hInst, HINSTANCE hInstPrev, PSTR cmdline, int cmd
 {
 #if 1
 
+	SetProcessDpiAwarenessContext(DPI_AWARENESS_CONTEXT_PER_MONITOR_AWARE_V2);
+
 	auto launcher = new LauncherWindow();
 	launcher->SetFrameGeometry(100.0, 100.0, 615.0, 668.0);
 	launcher->Show();
