@@ -4,6 +4,7 @@
 #include "core/colorf.h"
 #include "core/utf8reader.h"
 #include "core/resourcedata.h"
+#include "core/image.h"
 #include "window/window.h"
 #include "schrift/schrift.h"
 #include <vector>
@@ -212,7 +213,7 @@ public:
 	}
 	int getCharacterIndex(const std::shared_ptr<Font>& font, const std::string& text, const Point& hitPoint) override { return 0; }
 
-	void drawImage(const std::shared_ptr<Image>& image, const Point& pos) override { }
+	void drawImage(const std::shared_ptr<Image>& image, const Point& pos) override;
 
 	void drawLineUnclipped(const Point& p0, const Point& p1, const Colorf& color);
 
@@ -224,7 +225,7 @@ public:
 	int getClipMaxX() const;
 	int getClipMaxY() const;
 
-	std::unique_ptr<CanvasTexture> createTexture(int width, int height, const void* pixels);
+	std::unique_ptr<CanvasTexture> createTexture(int width, int height, const void* pixels, ImageFormat format = ImageFormat::B8G8R8A8);
 
 	template<typename T>
 	static T clamp(T val, T minval, T maxval) { return std::max<T>(std::min<T>(val, maxval), minval); }
@@ -241,6 +242,8 @@ public:
 	int width = 0;
 	int height = 0;
 	std::vector<uint32_t> pixels;
+
+	std::unordered_map<std::shared_ptr<Image>, std::unique_ptr<CanvasTexture>> imageTextures;
 };
 
 BitmapCanvas::BitmapCanvas(DisplayWindow* window) : window(window)
@@ -299,6 +302,17 @@ void BitmapCanvas::popClip()
 void BitmapCanvas::fillRect(const Rect& box, const Colorf& color)
 {
 	drawTile(whiteTexture.get(), (float)((origin.x + box.x) * uiscale), (float)((origin.y + box.y) * uiscale), (float)(box.width * uiscale), (float)(box.height * uiscale), 0.0, 0.0, 1.0, 1.0, color);
+}
+
+void BitmapCanvas::drawImage(const std::shared_ptr<Image>& image, const Point& pos)
+{
+	auto& texture = imageTextures[image];
+	if (!texture)
+	{
+		texture = createTexture(image->GetWidth(), image->GetHeight(), image->GetData(), image->GetFormat());
+	}
+	Colorf color(1.0f, 1.0f, 1.0f);
+	drawTile(texture.get(), (float)((origin.x + pos.x) * uiscale), (float)((origin.y + pos.y) * uiscale), (float)(texture->Width * uiscale), (float)(texture->Height * uiscale), 0.0, 0.0, (float)texture->Width, (float)texture->Height, color);
 }
 
 void BitmapCanvas::line(const Point& p0, const Point& p1, const Colorf& color)
@@ -444,13 +458,30 @@ VerticalTextPosition BitmapCanvas::verticalTextAlign()
 	return align;
 }
 
-std::unique_ptr<CanvasTexture> BitmapCanvas::createTexture(int width, int height, const void* pixels)
+std::unique_ptr<CanvasTexture> BitmapCanvas::createTexture(int width, int height, const void* pixels, ImageFormat format)
 {
 	auto texture = std::make_unique<CanvasTexture>();
 	texture->Width = width;
 	texture->Height = height;
 	texture->Data.resize(width * height);
-	memcpy(texture->Data.data(), pixels, width * height * sizeof(uint32_t));
+	if (format == ImageFormat::B8G8R8A8)
+	{
+		memcpy(texture->Data.data(), pixels, width * height * sizeof(uint32_t));
+	}
+	else
+	{
+		const uint32_t* src = (const uint32_t*)pixels;
+		uint32_t* dest = texture->Data.data();
+		int count = width * height;
+		for (int i = 0; i < count; i++)
+		{
+			uint32_t a = (src[i] >> 24) & 0xff;
+			uint32_t b = (src[i] >> 16) & 0xff;
+			uint32_t g = (src[i] >> 8) & 0xff;
+			uint32_t r = src[i] & 0xff;
+			dest[i] = (a << 24) | (r << 16) | (g << 8) | b;
+		}
+	}
 	return texture;
 }
 
@@ -490,7 +521,7 @@ int BitmapCanvas::getClipMaxY() const
 	return clipStack.empty() ? height : (int)std::min(clipStack.back().y + clipStack.back().height, (double)height);
 }
 
-void BitmapCanvas::drawTile(CanvasTexture* texture, float x, float y, float width, float height, float u, float v, float uvwidth, float uvheight, Colorf color)
+void BitmapCanvas::drawTile(CanvasTexture* texture, float left, float top, float width, float height, float u, float v, float uvwidth, float uvheight, Colorf color)
 {
 	if (width <= 0.0f || height <= 0.0f)
 		return;
@@ -503,10 +534,10 @@ void BitmapCanvas::drawTile(CanvasTexture* texture, float x, float y, float widt
 	int dheight = this->height;
 	uint32_t* dest = this->pixels.data();
 
-	int x0 = (int)x;
-	int x1 = (int)(x + width);
-	int y0 = (int)y;
-	int y1 = (int)(y + height);
+	int x0 = (int)left;
+	int x1 = (int)(left + width);
+	int y0 = (int)top;
+	int y1 = (int)(top + height);
 
 	x0 = std::max(x0, getClipMinX());
 	y0 = std::max(y0, getClipMinY());
@@ -525,13 +556,13 @@ void BitmapCanvas::drawTile(CanvasTexture* texture, float x, float y, float widt
 
 	for (int y = y0; y < y1; y++)
 	{
-		float vpix = v + vscale * (y + 0.5f - y0);
+		float vpix = v + vscale * (y + 0.5f - top);
 		const uint32_t* sline = src + ((int)vpix) * swidth;
 
 		uint32_t* dline = dest + y * dwidth;
 		for (int x = x0; x < x1; x++)
 		{
-			float upix = u + uscale * (x + 0.5f - x0);
+			float upix = u + uscale * (x + 0.5f - left);
 			uint32_t spixel = sline[(int)upix];
 			uint32_t salpha = spixel >> 24;
 			uint32_t sred = (spixel >> 16) & 0xff;

@@ -215,6 +215,46 @@ void Widget::Close()
 	OnClose();
 }
 
+void Widget::SetWindowBackground(const Colorf& color)
+{
+	Widget* w = Window();
+	if (w && w->WindowBackground != color)
+	{
+		w->WindowBackground = color;
+		Update();
+	}
+}
+
+void Widget::SetWindowBorderColor(const Colorf& color)
+{
+	Widget* w = Window();
+	if (w)
+	{
+		w->DispWindow->SetBorderColor(color.toBgra8());
+		w->DispWindow->Update();
+	}
+}
+
+void Widget::SetWindowCaptionColor(const Colorf& color)
+{
+	Widget* w = Window();
+	if (w)
+	{
+		w->DispWindow->SetCaptionColor(color.toBgra8());
+		w->DispWindow->Update();
+	}
+}
+
+void Widget::SetWindowCaptionTextColor(const Colorf& color)
+{
+	Widget* w = Window();
+	if (w)
+	{
+		w->DispWindow->SetCaptionTextColor(color.toBgra8());
+		w->DispWindow->Update();
+	}
+}
+
 void Widget::Update()
 {
 	Widget* w = Window();
@@ -227,7 +267,7 @@ void Widget::Update()
 void Widget::Repaint()
 {
 	Widget* w = Window();
-	w->DispCanvas->begin(Colorf(240/255.0f, 240/255.0f, 240/255.0f));
+	w->DispCanvas->begin(WindowBackground);
 	w->Paint(DispCanvas.get());
 	w->DispCanvas->end();
 }

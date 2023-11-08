@@ -165,5 +165,9 @@ public:
 	virtual int GetPixelHeight() const = 0;
 	virtual double GetDpiScale() const = 0;
 
+	virtual void SetBorderColor(uint32_t bgra8) = 0;
+	virtual void SetCaptionColor(uint32_t bgra8) = 0;
+	virtual void SetCaptionTextColor(uint32_t bgra8) = 0;
+
 	virtual void PresentBitmap(int width, int height, const uint32_t* pixels) = 0;
 };

@@ -4,6 +4,9 @@
 #include <stdexcept>
 #include <cmath>
 #include <vector>
+#include <dwmapi.h>
+
+#pragma comment(lib, "dwmapi.lib")
 
 #ifndef HID_USAGE_PAGE_GENERIC
 #define HID_USAGE_PAGE_GENERIC		((USHORT) 0x01)
@@ -66,7 +69,7 @@ Win32Window::Win32Window(DisplayWindowHost* windowHost) : WindowHost(windowHost)
 	classdesc.lpfnWndProc = &Win32Window::WndProc;
 	RegisterClassEx(&classdesc);
 
-	CreateWindowEx(WS_EX_APPWINDOW | WS_EX_OVERLAPPEDWINDOW, L"ZWidgetWindow", L"", WS_OVERLAPPEDWINDOW, 0, 0, 100, 100, 0, 0, GetModuleHandle(0), this);
+	CreateWindowEx(WS_EX_APPWINDOW, L"ZWidgetWindow", L"", WS_OVERLAPPEDWINDOW, 0, 0, 100, 100, 0, 0, GetModuleHandle(0), this);
 
 	/*
 	RAWINPUTDEVICE rid;
@@ -92,6 +95,24 @@ Win32Window::~Win32Window()
 void Win32Window::SetWindowTitle(const std::string& text)
 {
 	SetWindowText(WindowHandle, to_utf16(text).c_str());
+}
+
+void Win32Window::SetBorderColor(uint32_t bgra8)
+{
+	bgra8 = bgra8 & 0x00ffffff;
+	DwmSetWindowAttribute(WindowHandle, DWMWA_BORDER_COLOR, &bgra8, sizeof(uint32_t));
+}
+
+void Win32Window::SetCaptionColor(uint32_t bgra8)
+{
+	bgra8 = bgra8 & 0x00ffffff;
+	DwmSetWindowAttribute(WindowHandle, DWMWA_CAPTION_COLOR, &bgra8, sizeof(uint32_t));
+}
+
+void Win32Window::SetCaptionTextColor(uint32_t bgra8)
+{
+	bgra8 = bgra8 & 0x00ffffff;
+	DwmSetWindowAttribute(WindowHandle, DWMWA_TEXT_COLOR, &bgra8, sizeof(uint32_t));
 }
 
 void Win32Window::SetWindowFrame(const Rect& box)
@@ -244,7 +265,7 @@ void Win32Window::PresentBitmap(int width, int height, const uint32_t* pixels)
 	header.bV5SizeImage = width * height * sizeof(uint32_t);
 	header.bV5CSType = LCS_sRGB;
 
-	HDC dc = GetDC(WindowHandle);
+	HDC dc = PaintDC;
 	if (dc != 0)
 	{
 		int result = SetDIBitsToDevice(dc, 0, 0, width, height, 0, 0, 0, height, pixels, (const BITMAPINFO*)&header, BI_RGB);
@@ -254,6 +275,10 @@ void Win32Window::PresentBitmap(int width, int height, const uint32_t* pixels)
 
 LRESULT Win32Window::OnWindowMessage(UINT msg, WPARAM wparam, LPARAM lparam)
 {
+	LPARAM result = 0;
+	if (DwmDefWindowProc(WindowHandle, msg, wparam, lparam, &result))
+		return result;
+
 	if (msg == WM_INPUT)
 	{
 		bool hasFocus = GetFocus() != 0;
@@ -280,8 +305,15 @@ LRESULT Win32Window::OnWindowMessage(UINT msg, WPARAM wparam, LPARAM lparam)
 	}
 	else if (msg == WM_PAINT)
 	{
-		ValidateRect(WindowHandle, nullptr);
-		WindowHost->OnWindowPaint();
+		PAINTSTRUCT paintStruct = {};
+		PaintDC = BeginPaint(WindowHandle, &paintStruct);
+		if (PaintDC)
+		{
+			WindowHost->OnWindowPaint();
+			EndPaint(WindowHandle, &paintStruct);
+			PaintDC = 0;
+		}
+		return 0;
 	}
 	else if (msg == WM_ACTIVATE)
 	{
@@ -372,7 +404,13 @@ LRESULT Win32Window::OnWindowMessage(UINT msg, WPARAM wparam, LPARAM lparam)
 	else if (msg == WM_SIZE)
 	{
 		WindowHost->OnWindowGeometryChanged();
+		return 0;
 	}
+	/*else if (msg == WM_NCCALCSIZE && wparam == TRUE) // calculate client area for the window
+	{
+		NCCALCSIZE_PARAMS* calcsize = (NCCALCSIZE_PARAMS*)lparam;
+		return WVR_REDRAW;
+	}*/
 
 	return DefWindowProc(WindowHandle, msg, wparam, lparam);
 }

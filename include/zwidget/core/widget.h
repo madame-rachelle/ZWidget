@@ -4,6 +4,7 @@
 #include <memory>
 #include "canvas.h"
 #include "rect.h"
+#include "colorf.h"
 #include "../window/window.h"
 
 class Canvas;
@@ -43,6 +44,11 @@ public:
 	Rect GetFrameGeometry() const;
 	void SetFrameGeometry(const Rect& geometry);
 	void SetFrameGeometry(double x, double y, double width, double height) { SetFrameGeometry(Rect::xywh(x, y, width, height)); }
+
+	void SetWindowBackground(const Colorf& color);
+	void SetWindowBorderColor(const Colorf& color);
+	void SetWindowCaptionColor(const Colorf& color);
+	void SetWindowCaptionTextColor(const Colorf& color);
 
 	void SetVisible(bool enable) { if (enable) Show(); else Hide(); }
 	void Show();
@@ -151,6 +157,8 @@ private:
 
 	Rect FrameGeometry = Rect::xywh(0.0, 0.0, 0.0, 0.0);
 	Rect ContentGeometry = Rect::xywh(0.0, 0.0, 0.0, 0.0);
+
+	Colorf WindowBackground = Colorf(240 / 255.0f, 240 / 255.0f, 240 / 255.0f);
 
 	struct
 	{

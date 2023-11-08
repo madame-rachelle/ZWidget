@@ -37,6 +37,10 @@ public:
 
 	void PresentBitmap(int width, int height, const uint32_t* pixels) override;
 
+	void SetBorderColor(uint32_t bgra8) override;
+	void SetCaptionColor(uint32_t bgra8) override;
+	void SetCaptionTextColor(uint32_t bgra8) override;
+
 	Point GetLParamPos(LPARAM lparam) const;
 
 	static void ProcessEvents();
@@ -57,4 +61,6 @@ public:
 
 	bool MouseLocked = false;
 	POINT MouseLockPos = {};
+
+	HDC PaintDC = 0;
 };

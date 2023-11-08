@@ -19,6 +19,11 @@ set(ZWIDGET_SOURCES
 	src/widgets/textedit/textedit.cpp
 	src/widgets/toolbar/toolbar.cpp
 	src/widgets/toolbar/toolbarbutton.cpp
+	src/widgets/imagebox/imagebox.cpp
+	src/widgets/textlabel/textlabel.cpp
+	src/widgets/pushbutton/pushbutton.cpp
+	src/widgets/checkboxlabel/checkboxlabel.cpp
+	src/widgets/listview/listview.cpp
 	src/window/window.cpp
 )
 
@@ -41,6 +46,11 @@ set(ZWIDGET_INCLUDES
 	include/zwidget/widgets/textedit/textedit.h
 	include/zwidget/widgets/toolbar/toolbar.h
 	include/zwidget/widgets/toolbar/toolbarbutton.h
+	include/zwidget/widgets/imagebox/imagebox.h
+	include/zwidget/widgets/textlabel/textlabel.h
+	include/zwidget/widgets/pushbutton/pushbutton.h
+	include/zwidget/widgets/checkboxlabel/checkboxlabel.h
+	include/zwidget/widgets/listview/listview.h
 	include/zwidget/window/window.h
 )
 
@@ -54,6 +64,8 @@ set(ZWIDGET_UNIX_SOURCES
 
 set(EXAMPLE_SOURCES
 	example/example.cpp
+	example/picopng.cpp
+	example/picopng.h
 )
 
 source_group("src" REGULAR_EXPRESSION "${CMAKE_CURRENT_SOURCE_DIR}/src/.+")
@@ -67,6 +79,11 @@ source_group("src\\widgets\\scrollbar" REGULAR_EXPRESSION "${CMAKE_CURRENT_SOURC
 source_group("src\\widgets\\statusbar" REGULAR_EXPRESSION "${CMAKE_CURRENT_SOURCE_DIR}/src/widgets/statusbar/.+")
 source_group("src\\widgets\\textedit" REGULAR_EXPRESSION "${CMAKE_CURRENT_SOURCE_DIR}/src/widgets/textedit/.+")
 source_group("src\\widgets\\toolbar" REGULAR_EXPRESSION "${CMAKE_CURRENT_SOURCE_DIR}/src/widgets/toolbar/.+")
+source_group("src\\widgets\\imagebox" REGULAR_EXPRESSION "${CMAKE_CURRENT_SOURCE_DIR}/src/widgets/imagebox/.+")
+source_group("src\\widgets\\textlabel" REGULAR_EXPRESSION "${CMAKE_CURRENT_SOURCE_DIR}/src/widgets/textlabel/.+")
+source_group("src\\widgets\\pushbutton" REGULAR_EXPRESSION "${CMAKE_CURRENT_SOURCE_DIR}/src/widgets/pushbutton/.+")
+source_group("src\\widgets\\checkboxlabel" REGULAR_EXPRESSION "${CMAKE_CURRENT_SOURCE_DIR}/src/widgets/checkboxlabel/.+")
+source_group("src\\widgets\\listview" REGULAR_EXPRESSION "${CMAKE_CURRENT_SOURCE_DIR}/src/widgets/listview/.+")
 source_group("src\\window" REGULAR_EXPRESSION "${CMAKE_CURRENT_SOURCE_DIR}/src/window/.+")
 source_group("include" REGULAR_EXPRESSION "${CMAKE_CURRENT_SOURCE_DIR}/include/zwidget/.+")
 source_group("include\\core" REGULAR_EXPRESSION "${CMAKE_CURRENT_SOURCE_DIR}/include/zwidget/core/.+")
@@ -78,6 +95,11 @@ source_group("include\\widgets\\scrollbar" REGULAR_EXPRESSION "${CMAKE_CURRENT_S
 source_group("include\\widgets\\statusbar" REGULAR_EXPRESSION "${CMAKE_CURRENT_SOURCE_DIR}/include/zwidget/widgets/statusbar/.+")
 source_group("include\\widgets\\textedit" REGULAR_EXPRESSION "${CMAKE_CURRENT_SOURCE_DIR}/include/zwidget/widgets/textedit/.+")
 source_group("include\\widgets\\toolbar" REGULAR_EXPRESSION "${CMAKE_CURRENT_SOURCE_DIR}/include/zwidget/widgets/toolbar/.+")
+source_group("include\\widgets\\imagebox" REGULAR_EXPRESSION "${CMAKE_CURRENT_SOURCE_DIR}/include/zwidget/widgets/imagebox/.+")
+source_group("include\\widgets\\textlabel" REGULAR_EXPRESSION "${CMAKE_CURRENT_SOURCE_DIR}/include/zwidget/widgets/textlabel/.+")
+source_group("include\\widgets\\pushbutton" REGULAR_EXPRESSION "${CMAKE_CURRENT_SOURCE_DIR}/include/zwidget/widgets/pushbutton/.+")
+source_group("include\\widgets\\checkboxlabel" REGULAR_EXPRESSION "${CMAKE_CURRENT_SOURCE_DIR}/include/zwidget/widgets/checkboxlabel/.+")
+source_group("include\\widgets\\listview" REGULAR_EXPRESSION "${CMAKE_CURRENT_SOURCE_DIR}/include/zwidget/widgets/listview/.+")
 source_group("include\\window" REGULAR_EXPRESSION "${CMAKE_CURRENT_SOURCE_DIR}/include/zwidget/window/.+")
 source_group("include\\window\\win32" REGULAR_EXPRESSION "${CMAKE_CURRENT_SOURCE_DIR}/include/zwidget/window/win32/.+")
 source_group("include\\window\\unix" REGULAR_EXPRESSION "${CMAKE_CURRENT_SOURCE_DIR}/include/zwidget/window/unix/.+")

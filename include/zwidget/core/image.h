@@ -4,7 +4,8 @@
 
 enum class ImageFormat
 {
-	R8G8B8A8
+	R8G8B8A8,
+	B8G8R8A8
 };
 
 class Image
