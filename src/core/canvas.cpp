@@ -89,8 +89,7 @@ public:
 		texture->Data.resize(destwidth * h);
 		uint32_t* dest = (uint32_t*)texture->Data.data();
 
-		std::unique_ptr<uint8_t[]> grayscalebuffer(new uint8_t[w
-			* h]);
+		std::unique_ptr<uint8_t[]> grayscalebuffer(new uint8_t[w * h]);
 		uint8_t* grayscale = grayscalebuffer.get();
 
 		SFT_Image img = {};
@@ -111,9 +110,9 @@ public:
 				uint32_t blue = sline[x];
 				uint32_t alpha = (red | green | blue) ? 255 : 0;
 
-				red = (red + green) / 2;
-				green = (red + green + blue) / 3;
-				blue = (green + blue) / 2;
+				//red = (red + green) / 2;
+				//green = (red + green + blue) / 3;
+				//blue = (green + blue) / 2;
 
 				dline[x / 3] = (alpha << 24) | (red << 16) | (green << 8) | blue;
 			}
@@ -124,9 +123,9 @@ public:
 				uint32_t blue = 0;
 				uint32_t alpha = (red | green | blue) ? 255 : 0;
 
-				red = (red + green) / 2;
-				green = (red + green + blue) / 3;
-				blue = (green + blue) / 2;
+				//red = (red + green) / 2;
+				//green = (red + green + blue) / 3;
+				//blue = (green + blue) / 2;
 
 				dline[(w - 1) / 3] = (alpha << 24) | (red << 16) | (green << 8) | blue;
 			}
@@ -137,9 +136,9 @@ public:
 				uint32_t blue = 0;
 				uint32_t alpha = (red | green | blue) ? 255 : 0;
 
-				red = (red + green) / 2;
-				green = (red + green + blue) / 3;
-				blue = (green + blue) / 2;
+				//red = (red + green) / 2;
+				//green = (red + green + blue) / 3;
+				//blue = (green + blue) / 2;
 
 				dline[(w - 1) / 3] = (alpha << 24) | (red << 16) | (green << 8) | blue;
 			}
@@ -447,15 +446,15 @@ Rect BitmapCanvas::measureText(const std::string& text)
 		reader.next();
 	}
 
-	return Rect::xywh(0.0, 0.0, x, y);
+	return Rect::xywh(0.0, 0.0, x / uiscale, y / uiscale);
 }
 
 VerticalTextPosition BitmapCanvas::verticalTextAlign()
 {
 	VerticalTextPosition align;
 	align.top = 0.0f;
-	align.baseline = font->textmetrics.ascender;
-	align.bottom = font->textmetrics.ascender - font->textmetrics.descender;
+	align.baseline = font->textmetrics.ascender / uiscale;
+	align.bottom = (font->textmetrics.ascender - font->textmetrics.descender) / uiscale;
 	return align;
 }
 
@@ -621,10 +620,9 @@ void BitmapCanvas::drawGlyph(CanvasTexture* texture, float left, float top, floa
 	if (x1 <= x0 || y1 <= y0)
 		return;
 
-	uint32_t cred = (int32_t)clamp(color.r * 256.0f, 0.0f, 256.0f);
-	uint32_t cgreen = (int32_t)clamp(color.g * 256.0f, 0.0f, 256.0f);
-	uint32_t cblue = (int32_t)clamp(color.b * 256.0f, 0.0f, 256.0f);
-	uint32_t calpha = (int32_t)clamp(color.a * 256.0f, 0.0f, 256.0f);
+	uint32_t cred = (int32_t)clamp(color.r * 255.0f, 0.0f, 255.0f);
+	uint32_t cgreen = (int32_t)clamp(color.g * 255.0f, 0.0f, 255.0f);
+	uint32_t cblue = (int32_t)clamp(color.b * 255.0f, 0.0f, 255.0f);
 
 	float uscale = uvwidth / width;
 	float vscale = uvheight / height;
