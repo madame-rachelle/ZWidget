@@ -1007,7 +1007,7 @@ void TextEdit::OnPaintFrame(Canvas* canvas)
 	double w = GetFrameGeometry().width;
 	double h = GetFrameGeometry().height;
 	Colorf bordercolor(200 / 255.0f, 200 / 255.0f, 200 / 255.0f);
-	canvas->fillRect(Rect::xywh(0.0, 0.0, w, h), Colorf(1.0f, 1.0f, 1.0f, 1.0f));
+	canvas->fillRect(Rect::xywh(0.0, 0.0, w, h), Colorf::fromRgba8(255, 255, 255));
 	canvas->fillRect(Rect::xywh(0.0, 0.0, w, 1.0), bordercolor);
 	canvas->fillRect(Rect::xywh(0.0, h - 1.0, w, 1.0), bordercolor);
 	canvas->fillRect(Rect::xywh(0.0, 0.0, 1.0, h - 0.0), bordercolor);

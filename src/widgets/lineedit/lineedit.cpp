@@ -1066,8 +1066,8 @@ void LineEdit::OnPaintFrame(Canvas* canvas)
 {
 	double w = GetFrameGeometry().width;
 	double h = GetFrameGeometry().height;
-	Colorf bordercolor(200 / 255.0f, 200 / 255.0f, 200 / 255.0f);
-	canvas->fillRect(Rect::xywh(0.0, 0.0, w, h), Colorf(1.0f, 1.0f, 1.0f, 1.0f));
+	Colorf bordercolor = Colorf::fromRgba8(200, 200, 200);
+	canvas->fillRect(Rect::xywh(0.0, 0.0, w, h), Colorf::fromRgba8(255, 255, 255));
 	canvas->fillRect(Rect::xywh(0.0, 0.0, w, 1.0), bordercolor);
 	canvas->fillRect(Rect::xywh(0.0, h - 1.0, w, 1.0), bordercolor);
 	canvas->fillRect(Rect::xywh(0.0, 0.0, 1.0, h - 0.0), bordercolor);
@@ -1096,21 +1096,21 @@ void LineEdit::OnPaint(Canvas* canvas)
 	{
 		// Draw selection box.
 		Rect selection_rect = GetSelectionRect();
-		canvas->fillRect(selection_rect, HasFocus() ? Colorf(153 / 255.0f, 201 / 255.0f, 239 / 255.0f) : Colorf(229 / 255.0f, 235 / 255.0f, 241 / 255.0f));
+		canvas->fillRect(selection_rect, HasFocus() ? Colorf::fromRgba8(153, 201, 239) : Colorf::fromRgba8(229, 235, 241));
 	}
 
 	// Draw text before selection
 	if (!txt_before.empty())
 	{
-		canvas->drawText(Point(0.0, canvas->verticalTextAlign().baseline), Colorf(0.0f, 0.0f, 0.0f), txt_before);
+		canvas->drawText(Point(0.0, canvas->verticalTextAlign().baseline), Colorf::fromRgba8(0, 0, 0), txt_before);
 	}
 	if (!txt_selected.empty())
 	{
-		canvas->drawText(Point(size_before.width, canvas->verticalTextAlign().baseline), Colorf(0.0f, 0.0f, 0.0f), txt_selected);
+		canvas->drawText(Point(size_before.width, canvas->verticalTextAlign().baseline), Colorf::fromRgba8(0, 0, 0), txt_selected);
 	}
 	if (!txt_after.empty())
 	{
-		canvas->drawText(Point(size_before.width + size_selected.width, canvas->verticalTextAlign().baseline), Colorf(0.0f, 0.0f, 0.0f), txt_after);
+		canvas->drawText(Point(size_before.width + size_selected.width, canvas->verticalTextAlign().baseline), Colorf::fromRgba8(0, 0, 0), txt_after);
 	}
 
 	// draw cursor
@@ -1119,7 +1119,7 @@ void LineEdit::OnPaint(Canvas* canvas)
 		if (cursor_blink_visible)
 		{
 			Rect cursor_rect = GetCursorRect();
-			canvas->fillRect(cursor_rect, Colorf(0.0f, 0.0f, 0.0f));
+			canvas->fillRect(cursor_rect, Colorf::fromRgba8(0, 0, 0));
 		}
 	}
 }

@@ -158,7 +158,7 @@ private:
 	Rect FrameGeometry = Rect::xywh(0.0, 0.0, 0.0, 0.0);
 	Rect ContentGeometry = Rect::xywh(0.0, 0.0, 0.0, 0.0);
 
-	Colorf WindowBackground = Colorf(240 / 255.0f, 240 / 255.0f, 240 / 255.0f);
+	Colorf WindowBackground = Colorf::fromRgba8(240, 240, 240);
 
 	struct
 	{

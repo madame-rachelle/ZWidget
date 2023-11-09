@@ -40,5 +40,5 @@ void PushButton::OnPaintFrame(Canvas* canvas)
 void PushButton::OnPaint(Canvas* canvas)
 {
 	Rect box = canvas->measureText(text);
-	canvas->drawText(Point((GetWidth() - box.width) * 0.5, GetHeight() - 5.0), Colorf(1.0f, 1.0f, 1.0f), text);
+	canvas->drawText(Point((GetWidth() - box.width) * 0.5, GetHeight() - 5.0), Colorf::fromRgba8(255, 255, 255), text);
 }

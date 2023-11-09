@@ -26,5 +26,5 @@ double TextLabel::GetPreferredHeight() const
 
 void TextLabel::OnPaint(Canvas* canvas)
 {
-	canvas->drawText(Point(0.0, GetHeight() - 5.0), Colorf(1.0f, 1.0f, 1.0f), text);
+	canvas->drawText(Point(0.0, GetHeight() - 5.0), Colorf::fromRgba8(255, 255, 255), text);
 }

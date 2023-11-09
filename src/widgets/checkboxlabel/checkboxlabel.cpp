@@ -26,5 +26,5 @@ double CheckboxLabel::GetPreferredHeight() const
 
 void CheckboxLabel::OnPaint(Canvas* canvas)
 {
-	canvas->drawText(Point(0.0, GetHeight() - 5.0), Colorf(1.0f, 1.0f, 1.0f), "[x] " + text);
+	canvas->drawText(Point(0.0, GetHeight() - 5.0), Colorf::fromRgba8(255, 255, 255), "[x] " + text);
 }
