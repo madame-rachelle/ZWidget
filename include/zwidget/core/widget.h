@@ -104,6 +104,8 @@ public:
 	Point MapToGlobal(const Point& pos) const;
 	Point MapToParent(const Point& pos) const { return MapTo(Parent(), pos); }
 
+	static Size GetScreenSize();
+
 protected:
 	virtual void OnPaintFrame(Canvas* canvas) { }
 	virtual void OnPaint(Canvas* canvas) { }
@@ -173,6 +175,7 @@ private:
 	std::unique_ptr<Canvas> DispCanvas;
 	Widget* FocusWidget = nullptr;
 	Widget* CaptureWidget = nullptr;
+	Widget* HoverWidget = nullptr;
 
 	Widget(const Widget&) = delete;
 	Widget& operator=(const Widget&) = delete;

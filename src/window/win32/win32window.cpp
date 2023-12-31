@@ -69,7 +69,12 @@ Win32Window::Win32Window(DisplayWindowHost* windowHost) : WindowHost(windowHost)
 	classdesc.lpfnWndProc = &Win32Window::WndProc;
 	RegisterClassEx(&classdesc);
 
-	CreateWindowEx(WS_EX_APPWINDOW, L"ZWidgetWindow", L"", WS_OVERLAPPEDWINDOW, 0, 0, 100, 100, 0, 0, GetModuleHandle(0), this);
+	// Microsoft logic at its finest:
+	// WS_EX_DLGMODALFRAME hides the sysmenu icon
+	// WS_CAPTION shows the caption (yay! actually a flag that does what it says it does!)
+	// WS_SYSMENU shows the min/max/close buttons
+	// WS_THICKFRAME makes the window resizable
+	CreateWindowEx(WS_EX_APPWINDOW | WS_EX_DLGMODALFRAME, L"ZWidgetWindow", L"", WS_OVERLAPPED | WS_CAPTION | WS_SYSMENU | WS_THICKFRAME | WS_MINIMIZEBOX | WS_MAXIMIZEBOX, 0, 0, 100, 100, 0, 0, GetModuleHandle(0), this);
 
 	/*
 	RAWINPUTDEVICE rid;
@@ -247,6 +252,77 @@ int Win32Window::GetPixelHeight() const
 double Win32Window::GetDpiScale() const
 {
 	return GetDpiForWindow(WindowHandle) / 96.0;
+}
+
+std::string Win32Window::GetClipboardText()
+{
+	BOOL result = OpenClipboard(WindowHandle);
+	if (result == FALSE)
+		throw std::runtime_error("Unable to open clipboard");
+
+	HANDLE handle = GetClipboardData(CF_UNICODETEXT);
+	if (handle == 0)
+	{
+		CloseClipboard();
+		return std::string();
+	}
+
+	std::wstring::value_type* data = (std::wstring::value_type*)GlobalLock(handle);
+	if (data == 0)
+	{
+		CloseClipboard();
+		return std::string();
+	}
+	std::string str = from_utf16(data);
+	GlobalUnlock(handle);
+
+	CloseClipboard();
+	return str;
+}
+
+void Win32Window::SetClipboardText(const std::string& text)
+{
+	std::wstring text16 = to_utf16(text);
+
+	BOOL result = OpenClipboard(WindowHandle);
+	if (result == FALSE)
+		throw std::runtime_error("Unable to open clipboard");
+
+	result = EmptyClipboard();
+	if (result == FALSE)
+	{
+		CloseClipboard();
+		throw std::runtime_error("Unable to empty clipboard");
+	}
+
+	unsigned int length = (text16.length() + 1) * sizeof(std::wstring::value_type);
+	HANDLE handle = GlobalAlloc(GMEM_MOVEABLE, length);
+	if (handle == 0)
+	{
+		CloseClipboard();
+		throw std::runtime_error("Unable to allocate clipboard memory");
+	}
+
+	void* data = GlobalLock(handle);
+	if (data == 0)
+	{
+		GlobalFree(handle);
+		CloseClipboard();
+		throw std::runtime_error("Unable to lock clipboard memory");
+	}
+	memcpy(data, text16.c_str(), length);
+	GlobalUnlock(handle);
+
+	HANDLE data_result = SetClipboardData(CF_UNICODETEXT, handle);
+
+	if (data_result == 0)
+	{
+		GlobalFree(handle);
+		CloseClipboard();
+		throw std::runtime_error("Unable to set clipboard data");
+	}
+
+	CloseClipboard();
 }
 
 void Win32Window::PresentBitmap(int width, int height, const uint32_t* pixels)
@@ -481,5 +557,46 @@ void Win32Window::ExitLoop()
 	ExitRunLoop = true;
 }
 
+Size Win32Window::GetScreenSize()
+{
+	HDC screenDC = GetDC(0);
+	int screenWidth = GetDeviceCaps(screenDC, HORZRES);
+	int screenHeight = GetDeviceCaps(screenDC, VERTRES);
+	double dpiScale = GetDeviceCaps(screenDC, LOGPIXELSX) / 96.0;
+	ReleaseDC(0, screenDC);
+
+	return Size(screenWidth / dpiScale, screenHeight / dpiScale);
+}
+
+static void CALLBACK Win32TimerCallback(HWND handle, UINT message, UINT_PTR timerID, DWORD timestamp)
+{
+	auto it = Win32Window::Timers.find(timerID);
+	if (it != Win32Window::Timers.end())
+	{
+		it->second();
+	}
+}
+
+void* Win32Window::StartTimer(int timeoutMilliseconds, std::function<void()> onTimer)
+{
+	UINT_PTR result = SetTimer(0, 0, timeoutMilliseconds, Win32TimerCallback);
+	if (result == 0)
+		throw std::runtime_error("Could not create timer");
+	Timers[result] = std::move(onTimer);
+	return (void*)result;
+}
+
+void Win32Window::StopTimer(void* timerID)
+{
+	auto it = Timers.find((UINT_PTR)timerID);
+	if (it != Timers.end())
+	{
+		Timers.erase(it);
+		KillTimer(0, (UINT_PTR)timerID);
+	}
+}
+
 std::list<Win32Window*> Win32Window::Windows;
 bool Win32Window::ExitRunLoop;
+
+std::unordered_map<UINT_PTR, std::function<void()>> Win32Window::Timers;

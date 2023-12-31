@@ -2,6 +2,7 @@
 
 #include <memory>
 #include <string>
+#include <functional>
 #include "../core/rect.h"
 
 class Engine;
@@ -141,6 +142,11 @@ public:
 	static void RunLoop();
 	static void ExitLoop();
 
+	static void* StartTimer(int timeoutMilliseconds, std::function<void()> onTimer);
+	static void StopTimer(void* timerID);
+
+	static Size GetScreenSize();
+
 	virtual ~DisplayWindow() = default;
 
 	virtual void SetWindowTitle(const std::string& text) = 0;
@@ -170,4 +176,7 @@ public:
 	virtual void SetCaptionTextColor(uint32_t bgra8) = 0;
 
 	virtual void PresentBitmap(int width, int height, const uint32_t* pixels) = 0;
+
+	virtual std::string GetClipboardText() = 0;
+	virtual void SetClipboardText(const std::string& text) = 0;
 };

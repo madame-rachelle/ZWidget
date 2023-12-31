@@ -2,9 +2,13 @@
 
 #define NOMINMAX
 #define WIN32_MEAN_AND_LEAN
+#ifndef WINVER
+#define WINVER 0x0605
+#endif
 #include <Windows.h>
 
 #include <list>
+#include <unordered_map>
 #include <zwidget/window/window.h>
 
 class Win32Window : public DisplayWindow
@@ -41,15 +45,24 @@ public:
 	void SetCaptionColor(uint32_t bgra8) override;
 	void SetCaptionTextColor(uint32_t bgra8) override;
 
+	std::string GetClipboardText() override;
+	void SetClipboardText(const std::string& text) override;
+
 	Point GetLParamPos(LPARAM lparam) const;
 
 	static void ProcessEvents();
 	static void RunLoop();
 	static void ExitLoop();
+	static Size GetScreenSize();
+
+	static void* StartTimer(int timeoutMilliseconds, std::function<void()> onTimer);
+	static void StopTimer(void* timerID);
 
 	static bool ExitRunLoop;
 	static std::list<Win32Window*> Windows;
 	std::list<Win32Window*>::iterator WindowsIterator;
+
+	static std::unordered_map<UINT_PTR, std::function<void()>> Timers;
 
 	LRESULT OnWindowMessage(UINT msg, WPARAM wparam, LPARAM lparam);
 	static LRESULT CALLBACK WndProc(HWND windowhandle, UINT msg, WPARAM wparam, LPARAM lparam);

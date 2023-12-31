@@ -75,6 +75,19 @@ void Widget::MoveBefore(Widget* sibling)
 
 void Widget::DetachFromParent()
 {
+	for (Widget* cur = ParentObj; cur; cur = cur->ParentObj)
+	{
+		if (cur->FocusWidget == this)
+			cur->FocusWidget = nullptr;
+		if (cur->CaptureWidget == this)
+			cur->CaptureWidget = nullptr;
+		if (cur->HoverWidget == this)
+			cur->HoverWidget = nullptr;
+
+		if (cur->DispWindow)
+			break;
+	}
+
 	if (PrevSiblingObj)
 		PrevSiblingObj->NextSiblingObj = NextSiblingObj;
 	if (NextSiblingObj)
@@ -141,7 +154,7 @@ void Widget::SetFrameGeometry(const Rect& geometry)
 		double right = FrameGeometry.right() - Noncontent.Right;
 		double bottom = FrameGeometry.bottom() - Noncontent.Bottom;
 		left = std::min(left, FrameGeometry.right());
-		top = std::min(top, FrameGeometry.right());
+		top = std::min(top, FrameGeometry.bottom());
 		right = std::max(right, FrameGeometry.left());
 		bottom = std::max(bottom, FrameGeometry.top());
 		ContentGeometry = Rect::ltrb(left, top, right, bottom);
@@ -268,7 +281,7 @@ void Widget::Repaint()
 {
 	Widget* w = Window();
 	w->DispCanvas->begin(WindowBackground);
-	w->Paint(DispCanvas.get());
+	w->Paint(w->DispCanvas.get());
 	w->DispCanvas->end();
 }
 
@@ -366,11 +379,18 @@ void Widget::ReleaseMouseCapture()
 
 std::string Widget::GetClipboardText()
 {
-	return {};
+	Widget* w = Window();
+	if (w)
+		return w->DispWindow->GetClipboardText();
+	else
+		return {};
 }
 
 void Widget::SetClipboardText(const std::string& text)
 {
+	Widget* w = Window();
+	if (w)
+		w->DispWindow->SetClipboardText(text);
 }
 
 Widget* Widget::Window()
@@ -474,6 +494,14 @@ void Widget::OnWindowMouseMove(const Point& pos)
 		Widget* widget = ChildAt(pos);
 		if (!widget)
 			widget = this;
+
+		if (HoverWidget != widget)
+		{
+			if (HoverWidget)
+				HoverWidget->OnMouseLeave();
+			HoverWidget = widget;
+		}
+
 		widget->OnMouseMove(widget->MapFrom(this, pos));
 	}
 }
@@ -591,4 +619,9 @@ void Widget::OnWindowDeactivated()
 
 void Widget::OnWindowDpiScaleChanged()
 {
+}
+
+Size Widget::GetScreenSize()
+{
+	return DisplayWindow::GetScreenSize();
 }
