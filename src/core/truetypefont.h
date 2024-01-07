@@ -6,6 +6,7 @@
 #include <stdexcept>
 #include <memory>
 #include <cstring>
+#include <string>
 
 typedef uint8_t ttf_uint8;
 typedef uint16_t ttf_uint16;
