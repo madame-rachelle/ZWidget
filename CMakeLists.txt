@@ -9,6 +9,9 @@ set(ZWIDGET_SOURCES
 	src/core/timer.cpp
 	src/core/widget.cpp
 	src/core/utf8reader.cpp
+	src/core/pathfill.cpp
+	src/core/truetypefont.cpp
+	src/core/truetypefont.h
 	src/core/schrift/schrift.cpp
 	src/core/schrift/schrift.h
 	src/core/picopng/picopng.cpp
@@ -38,6 +41,7 @@ set(ZWIDGET_INCLUDES
 	include/zwidget/core/font.h
 	include/zwidget/core/image.h
 	include/zwidget/core/rect.h
+	include/zwidget/core/pathfill.h
 	include/zwidget/core/span_layout.h
 	include/zwidget/core/timer.h
 	include/zwidget/core/widget.h
@@ -64,13 +68,12 @@ set(ZWIDGET_WIN32_SOURCES
 	src/window/win32/win32window.h
 )
 
-set(ZWIDGET_UNIX_SOURCES
+set(ZWIDGET_COCOA_SOURCES
 )
 
-set(EXAMPLE_SOURCES
-	example/example.cpp
-	example/picopng.cpp
-	example/picopng.h
+set(ZWIDGET_SDL2_SOURCES
+	src/window/sdl2/sdl2displaywindow.cpp
+	src/window/sdl2/sdl2displaywindow.h
 )
 
 source_group("src" REGULAR_EXPRESSION "${CMAKE_CURRENT_SOURCE_DIR}/src/.+")
@@ -109,17 +112,20 @@ source_group("include\\widgets\\checkboxlabel" REGULAR_EXPRESSION "${CMAKE_CURRE
 source_group("include\\widgets\\listview" REGULAR_EXPRESSION "${CMAKE_CURRENT_SOURCE_DIR}/include/zwidget/widgets/listview/.+")
 source_group("include\\window" REGULAR_EXPRESSION "${CMAKE_CURRENT_SOURCE_DIR}/include/zwidget/window/.+")
 source_group("include\\window\\win32" REGULAR_EXPRESSION "${CMAKE_CURRENT_SOURCE_DIR}/include/zwidget/window/win32/.+")
-source_group("include\\window\\unix" REGULAR_EXPRESSION "${CMAKE_CURRENT_SOURCE_DIR}/include/zwidget/window/unix/.+")
-
-source_group("example" REGULAR_EXPRESSION "${CMAKE_CURRENT_SOURCE_DIR}/example/.+")
+source_group("include\\window\\sdl2" REGULAR_EXPRESSION "${CMAKE_CURRENT_SOURCE_DIR}/include/zwidget/window/sdl2/.+")
 
 include_directories(include include/zwidget src)
 
 if(WIN32)
 	set(ZWIDGET_SOURCES ${ZWIDGET_SOURCES} ${ZWIDGET_WIN32_SOURCES})
 	add_definitions(-DUNICODE -D_UNICODE)
+elseif(APPLE)
+	set(ZWIDGET_SOURCES ${ZWIDGET_SOURCES} ${ZWIDGET_COCOA_SOURCES})
+	set(ZWIDGET_LIBS ${CMAKE_DL_LIBS} -ldl)
+	add_definitions(-DUNIX -D_UNIX)
+	add_link_options(-pthread)
 else()
-	set(ZWIDGET_SOURCES ${ZWIDGET_SOURCES} ${ZWIDGET_UNIX_SOURCES})
+	set(ZWIDGET_SOURCES ${ZWIDGET_SOURCES} ${ZWIDGET_SDL2_SOURCES})
 	set(ZWIDGET_LIBS ${CMAKE_DL_LIBS} -ldl)
 	add_definitions(-DUNIX -D_UNIX)
 	add_link_options(-pthread)
@@ -137,11 +143,6 @@ add_library(zwidget STATIC ${ZWIDGET_SOURCES} ${ZWIDGET_INCLUDES})
 target_link_libraries(zwidget ${ZWIDGET_LIBS})
 set_target_properties(zwidget PROPERTIES CXX_STANDARD 17)
 
-add_executable(zwidget_example WIN32 MACOSX_BUNDLE ${EXAMPLE_SOURCES})
-target_link_libraries(zwidget_example zwidget)
-set_target_properties(zwidget_example PROPERTIES CXX_STANDARD 17)
-
 if(MSVC)
 	set_property(TARGET zwidget PROPERTY MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
-	set_property(TARGET zwidget_example PROPERTY MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
 endif()
