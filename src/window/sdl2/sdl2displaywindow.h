@@ -1,21 +1,15 @@
 #pragma once
 
-#define NOMINMAX
-#define WIN32_MEAN_AND_LEAN
-#ifndef WINVER
-#define WINVER 0x0605
-#endif
-#include <Windows.h>
-
 #include <list>
 #include <unordered_map>
 #include <zwidget/window/window.h>
+#include <SDL2/SDL.h>
 
-class Win32Window : public DisplayWindow
+class SDL2DisplayWindow : public DisplayWindow
 {
 public:
-	Win32Window(DisplayWindowHost* windowHost);
-	~Win32Window();
+	SDL2DisplayWindow(DisplayWindowHost* windowHost);
+	~SDL2DisplayWindow();
 
 	void SetWindowTitle(const std::string& text) override;
 	void SetWindowFrame(const Rect& box) override;
@@ -34,9 +28,7 @@ public:
 	void ReleaseMouseCapture() override;
 	void Update() override;
 	bool GetKeyState(EInputKey key) override;
-
 	void SetCursor(StandardCursor cursor) override;
-	void UpdateCursor();
 
 	Rect GetWindowFrame() const override;
 	Size GetClientSize() const override;
@@ -53,7 +45,30 @@ public:
 	std::string GetClipboardText() override;
 	void SetClipboardText(const std::string& text) override;
 
-	Point GetLParamPos(LPARAM lparam) const;
+	static void DispatchEvent(const SDL_Event& event);
+	static SDL2DisplayWindow* FindEventWindow(const SDL_Event& event);
+
+	void OnWindowEvent(const SDL_WindowEvent& event);
+	void OnTextInput(const SDL_TextInputEvent& event);
+	void OnKeyUp(const SDL_KeyboardEvent& event);
+	void OnKeyDown(const SDL_KeyboardEvent& event);
+	void OnMouseButtonUp(const SDL_MouseButtonEvent& event);
+	void OnMouseButtonDown(const SDL_MouseButtonEvent& event);
+	void OnMouseWheel(const SDL_MouseWheelEvent& event);
+	void OnMouseMotion(const SDL_MouseMotionEvent& event);
+	void OnPaintEvent();
+
+	EInputKey GetMouseButtonKey(const SDL_MouseButtonEvent& event);
+
+	static EInputKey ScancodeToInputKey(SDL_Scancode keycode);
+	static SDL_Scancode InputKeyToScancode(EInputKey inputkey);
+
+	template<typename T>
+	Point GetMousePos(const T& event)
+	{
+		double uiscale = GetDpiScale();
+		return Point(event.x / uiscale, event.y / uiscale);
+	}
 
 	static void ProcessEvents();
 	static void RunLoop();
@@ -63,24 +78,14 @@ public:
 	static void* StartTimer(int timeoutMilliseconds, std::function<void()> onTimer);
 	static void StopTimer(void* timerID);
 
-	static bool ExitRunLoop;
-	static std::list<Win32Window*> Windows;
-	std::list<Win32Window*>::iterator WindowsIterator;
-
-	static std::unordered_map<UINT_PTR, std::function<void()>> Timers;
-
-	LRESULT OnWindowMessage(UINT msg, WPARAM wparam, LPARAM lparam);
-	static LRESULT CALLBACK WndProc(HWND windowhandle, UINT msg, WPARAM wparam, LPARAM lparam);
-
 	DisplayWindowHost* WindowHost = nullptr;
+	SDL_Window* WindowHandle = nullptr;
+	SDL_Renderer* RendererHandle = nullptr;
+	SDL_Texture* BackBufferTexture = nullptr;
+	int BackBufferWidth = 0;
+	int BackBufferHeight = 0;
 
-	HWND WindowHandle = 0;
-	bool Fullscreen = false;
-
-	bool MouseLocked = false;
-	POINT MouseLockPos = {};
-
-	HDC PaintDC = 0;
-
-	StandardCursor CurrentCursor = StandardCursor::arrow;
+	static bool ExitRunLoop;
+	static Uint32 PaintEventNumber;
+	static std::unordered_map<int, SDL2DisplayWindow*> WindowList;
 };
